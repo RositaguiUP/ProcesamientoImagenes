@@ -32,6 +32,7 @@ int main()
     Mat blendImage(srows, scols, CV_8UC1, Scalar(255));
     Mat blendWeightColsImage(srows, scols, CV_8UC1, Scalar(255));
     Mat blendWeightRowsImage(srows, scols, CV_8UC1, Scalar(255));
+    Mat negativeImage(image3.rows, image3.cols, CV_8UC1, Scalar(255));
 
     int pixelColor;
     float w1, w2, inc;
@@ -69,9 +70,17 @@ int main()
         }
     }
 
-    imshow("Blend Weight Cols", blendWeightColsImage);
-    imshow("Blend Weight Rows", blendWeightRowsImage);
-    imshow("Blend", blendImage);
+    for (int j = 0; j < negativeImage.rows; j++) {
+        for (int i = 0; i < negativeImage.cols; i++) {
+            pixelColor = 255 - image3.at<uchar>(j, i);
+            negativeImage.at<uchar>(j, i) = (uchar)(pixelColor);
+        }
+    }
+
+    //imshow("Blend Weight Cols", blendWeightColsImage);
+    //imshow("Blend Weight Rows", blendWeightRowsImage);
+    //imshow("Blend", blendImage);
+    imshow("Negative", negativeImage);
     #pragma endregion
     
     #pragma region AddConst
@@ -90,8 +99,8 @@ int main()
         }
     }
 
-    imshow("Original", image3);
-    imshow("AddConst", addConstImage);
+    //imshow("Original", image3);
+    //imshow("AddConst", addConstImage);
     #pragma endregion
 
     waitKey(0); // Wait for a keystroke in the window
