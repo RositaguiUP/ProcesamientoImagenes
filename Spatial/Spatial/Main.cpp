@@ -11,13 +11,16 @@ int checkImage(Mat, string);
 int main()
 {
     string path1 = samples::findFile("images/littleCat.jpg");
+    string path2 = samples::findFile("images/pimienta.png");
     Mat image1 = imread(path1, IMREAD_GRAYSCALE);
+    Mat image2 = imread(path2, IMREAD_GRAYSCALE);
 
     if (checkImage(image1, path1))
         return -1;
 
     Mat bluredImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
     Mat bluredVarImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
+    Mat pimientaImage(image2.rows, image2.cols, CV_8UC1, Scalar(255));
 
     int sum, prom;
     for (int j = 1; j < bluredImage.rows-1; j++) {
@@ -51,9 +54,33 @@ int main()
         }
     }
 
-    imshow("Original", image1);
-    imshow("Blur 3x3", bluredImage);
-    imshow("Blur Variable (7x7)", bluredVarImage);
+    var = 3;
+    int mid = (var * var) / 2;
+    inter = var / 2;
+    interInf = 0 - inter;
+    interSup = 1 + inter;
+    vector<int> vecPixels;
+    for (int j = inter; j < pimientaImage.rows - inter; j++) {
+        for (int i = inter; i < pimientaImage.cols - inter; i++) {
+            vecPixels.clear();
+            for (int l = interInf; l < interSup; l++) {
+                for (int k = interInf; k < interSup; k++) {
+                    vecPixels.push_back(image2.at<uchar>(j + l, i + k));
+                }
+            }
+            sort(vecPixels.begin(), vecPixels.end());
+            pimientaImage.at<uchar>(j, i) = (uchar)(vecPixels[mid]);
+        }
+    }
+
+
+
+    //imshow("Original", image1);
+    //imshow("Blur 3x3", bluredImage);
+    //imshow("Blur Variable (7x7)", bluredVarImage);
+
+    imshow("Original", image2);
+    imshow("Pimienta filter", pimientaImage);
 
     waitKey(0); // Wait for a keystroke in the window
     return 0;
