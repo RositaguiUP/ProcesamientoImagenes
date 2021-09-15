@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-    string originalPath = samples::findFile("images/monalisa.jpg");
+    string originalPath = samples::findFile("images/littleCat.jpg");
 
     Mat originalImage = imread(originalPath, IMREAD_GRAYSCALE);
 
