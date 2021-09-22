@@ -2,6 +2,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
+#include <cmath>
 
 using namespace cv;
 using namespace std;
@@ -24,6 +25,7 @@ int main()
     Mat bluredGaussImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
     Mat thresholdImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
     Mat thresholdBluredImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
+    Mat bluredVarGaussImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
 
     int umbral = 128;
     int sum, prom;
@@ -115,16 +117,67 @@ int main()
     }
 
 
+
+    int n, m, x0, y0, x, y, sigma = 24;
+    n = 9;
+    m = 9;
+    x0 = floor(m / (float)2);
+    y0 = floor(n / (float)2);
+    
+    float Texp, tconst;
+    Mat gaussMask(n, m, CV_32F);
+
+
+    for (int j = 0; j < n; j++) {
+        for (int i = 0; i < m; i++) {
+            x = i - x0;
+            y = y0 - j;
+            Texp = (x * x + y * y) / (float)(2 * sigma * sigma);
+            tconst = 1 / (float)(sigma * sigma * 2 * 3.1416);
+            gaussMask.at<float>(j, i) = tconst * exp(-Texp);
+        }
+    }
+
+    float maskTot = 0;
+    for (int j = 0; j < n; j++) {
+        for (int i = 0; i < m; i++) {
+            cout << gaussMask.at<float>(j, i) << " ";
+            maskTot += gaussMask.at<float>(j, i);
+        }
+        cout << endl;
+    }
+
+    float sumMask = 0;
+    var = 9;
+    inter = var / 2;
+    interInf = 0 - inter;
+    interSup = 1 + inter;
+    for (int j = inter; j < bluredGaussImage.rows - inter; j++) {
+        for (int i = inter; i < bluredGaussImage.cols - inter; i++) {
+            sumMask = 0;
+            for (int l = interInf; l < interSup; l++) {
+                for (int k = interInf; k < interSup; k++) {
+                    sumMask += image1.at<uchar>(j + l, i + k) * gaussMask.at<float>(interSup + l - 1,interSup + k - 1);
+                }
+            }
+            prom = sumMask / maskTot;
+            bluredVarGaussImage.at<uchar>(j, i) = (uchar)(prom);
+        }
+    }
+
+
     imshow("Original", image1);
     // imshow("Blur 3x3", bluredImage);
-    imshow("Blur Variable (5x5)", bluredVarImage);
+    // imshow("Blur Variable (5x5)", bluredVarImage);
 
-    //imshow("Original", image2);
-    //imshow("Pimienta filter", pimientaImage);
+    // imshow("Original", image2);
+    // imshow("Pimienta filter", pimientaImage);
 
-    imshow("Gauss Blur 5x5", bluredGaussImage);
-    imshow("Threshold", thresholdImage);
-    imshow("Threshold Gauss Blur 5x5", thresholdBluredImage);
+    // imshow("Gauss Blur 5x5", bluredGaussImage);
+    // imshow("Threshold", thresholdImage);
+    // imshow("Threshold Gauss Blur 5x5", thresholdBluredImage);
+
+    imshow("Var Gauss 9x9", bluredVarGaussImage);
 
     waitKey(0); // Wait for a keystroke in the window
     return 0;
