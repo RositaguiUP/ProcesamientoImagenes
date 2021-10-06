@@ -9,14 +9,16 @@ using namespace cv;
 using namespace std;
 
 int main() {
-	string path1 = samples::findFile("images/coraje.jpg");
+	string path1 = samples::findFile("images/monalisa.jpg");
 	Mat image1 = imread(path1, IMREAD_GRAYSCALE);
 	Mat twoColorsImage(image1.rows, image1.cols, CV_8UC1);
 	Mat growingImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
+	Mat erosinedImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
+	Mat dilatedImage(image1.rows, image1.cols, CV_8UC1, Scalar(255));
 
 	for (int j = 0; j < image1.rows; j++) {
 		for (int i = 0; i < image1.cols; i++) {
-			if (image1.at<uchar>(j, i) > 210) {
+			if (image1.at<uchar>(j, i) > 120) {
 				twoColorsImage.at<uchar>(j, i) = (uchar)(0);
 			}
 			else {
@@ -25,10 +27,11 @@ int main() {
 		}
 	}
 
+	int cont = 1;
+
+	#pragma region Regions
 	vector<vector<int>>visited(twoColorsImage.rows, vector<int>(twoColorsImage.cols, 0));
 	queue<Point> vecinos;
-
-	int cont = 1;
 	int color = 50;
 	for (int j = 0; j < image1.rows; j++) {
 		for (int i = 0; i < image1.cols; i++) {
@@ -60,12 +63,49 @@ int main() {
 			}
 		}
 	}
+	#pragma endregion
 
-	cout << cont;
+	int mask[3][3] = { {0, 255, 0 }, {255, 255, 255}, {0, 255, 0 } };
+	int points = 5;
+
+	#pragma region Erosion
+	for (int j = 1; j < image1.rows-1; j++) {
+		for (int i = 1; i < image1.cols-1; i++) {
+			cont = 0;
+			for (int l = -1; l <= 1; l++) {
+				for (int k = -1; k <= 1; k++) {
+					if (twoColorsImage.at<uchar>(j + l, i + k) == 0 && mask[1 + l][1 + k] == 255)
+						cont++;
+				}
+			}
+			if (cont == points)
+				erosinedImage.at<uchar>(j, i) = (uchar)0;
+		}
+	}
+	#pragma endregion
+
+	points = 1;
+	#pragma region Dilatation
+	for (int j = 1; j < image1.rows - 1; j++) {
+		for (int i = 1; i < image1.cols - 1; i++) {
+			cont = 0;
+			for (int l = -1; l <= 1; l++) {
+				for (int k = -1; k <= 1; k++) {
+					if (twoColorsImage.at<uchar>(j + l, i + k) == 0 && mask[1 + l][1 + k] == 255)
+						cont++;
+				}
+			}
+			if (cont >= points)
+				dilatedImage.at<uchar>(j, i) = (uchar)0;
+		}
+	}
+	#pragma endregion
+
 	imshow("Original", image1);
 	imshow("Image B&W", twoColorsImage);
-	imshow("Image Growing", growingImage);
-
+	// imshow("Image Growing", growingImage);
+	imshow("Erosion", erosinedImage);
+	imshow("Dilatation", dilatedImage);
 
 	waitKey(0); // Wait for a keystroke in the window
 	return 0;
