@@ -16,7 +16,8 @@ Mat interpol(Mat, float, float);
 int interpolationP(Mat, float, float);
 Mat translate(Mat, int, int);
 Mat rotate(Mat, float);
-
+Mat skewy(Mat, float);
+Mat skewx(Mat, float);
 
 int main() {
 	string path = samples::findFile("images/cat.jpg");
@@ -28,11 +29,12 @@ int main() {
 	//Mat reducInterImage = interpol(originalImage, 0.5, 0.5);
 	//Mat ampliInterImage = interpol(originalImage, 1.5, 1.5);
 
-	Mat translImage = translate(originalImage, 200, 200);
+	//Mat translImage = translate(originalImage, 200, 200);
 	//Mat rotateImage = rotate(originalImage, 90);
+	Mat skewXImage = skewx(originalImage, 0.8);
 
 	imshow("Original", originalImage);
-	imshow("Translation", translImage);
+	imshow("Skew (Sesgo)", skewXImage);
 
 	int k = waitKey(0); // Wait for a keystroke in the window
 	/* if (k == 's')
@@ -168,9 +170,8 @@ Mat translate(Mat original, int tx, int ty) {
 }
 
 Mat rotate(Mat original, float teta) {
-	float u, v, u0, v0, x0, y0, q11, q12, q21, q22, r1, r2;
+	float u, v, u0, v0, x0, y0, p;
 	float radians = (teta * 3.14159) / 180;
-	int x1, x2, y1, y2, p;
 	Mat newImage(original.rows, original.cols, CV_8UC1);
 
 	for (int j = 0; j < newImage.rows; j++) {
@@ -183,7 +184,7 @@ Mat rotate(Mat original, float teta) {
 
 			v = v0 + original.cols / 2;
 			u = (original.rows / 2) - u0;
-			if (u > 0 && u < original.rows && v > 0 && v < original.cols-1) {
+			if (u > 0 && u < original.rows -1 && v > 0 && v < original.cols-1) {
 				p = interpolationP(original, u, v);
 				newImage.at<uchar>(j, i) = (uchar)p;
 			}
@@ -194,5 +195,60 @@ Mat rotate(Mat original, float teta) {
 	}
 
 	return newImage;
+}
 
+Mat skewy(Mat original, float sy) {
+	int x0, y0, p;
+	float u0, v0, u, v;
+	Mat newImage(original.rows, original.cols, CV_8UC1);
+
+	for (int j = 0; j < newImage.rows; j++) {
+		for (int i = 0; i < newImage.cols; i++) {
+			x0 = i - original.cols / 2;
+			y0 = original.rows / 2 - j;
+
+			v0 = x0;
+			u0 = y0 - (sy * v0);
+
+			v = v0 + original.cols / 2;
+			u = original.rows / 2 - u0;
+			if (u > 0 && u < original.rows - 1 && v > 0 && v < original.cols - 1) {
+				p = interpolationP(original, u, v);
+				newImage.at<uchar>(j, i) = (uchar)p;
+			}
+			else {
+				newImage.at<uchar>(j, i) = (uchar)0;
+			}
+		}
+	}
+
+	return newImage;
+}
+
+Mat skewx(Mat original, float sx) {
+	int x0, y0, p;
+	float u0, v0, u, v;
+	Mat newImage(original.rows, original.cols, CV_8UC1);
+
+	for (int j = 0; j < newImage.rows; j++) {
+		for (int i = 0; i < newImage.cols; i++) {
+			x0 = i - original.cols / 2;
+			y0 = original.rows / 2 - j;
+
+			u0 = y0;
+			v0 = x0 - (sx * u0);
+
+			v = v0 + original.cols / 2;
+			u = original.rows / 2 - u0;
+			if (u > 0 && u < original.rows - 1 && v > 0 && v < original.cols - 1) {
+				p = interpolationP(original, u, v);
+				newImage.at<uchar>(j, i) = (uchar)p;
+			}
+			else {
+				newImage.at<uchar>(j, i) = (uchar)0;
+			}
+		}
+	}
+
+	return newImage;
 }
